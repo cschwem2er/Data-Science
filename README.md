@@ -1,4 +1,4 @@
 Data-Science
 ============
 
-Data-Science Portfolio
+Just a small collection of the first Data-Science projects I am working on.
