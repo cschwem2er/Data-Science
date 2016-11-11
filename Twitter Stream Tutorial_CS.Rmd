@@ -1,0 +1,63 @@
+---
+title: "Twitter with R - Tutorial Notebook"
+output: html_notebook
+---
+
+## Preparations
+
+To access Twitter via R, we first have to [create a Twitter app](https://apps.twitter.com/). The process is described in greater detail [here](https://github.com/mkearney/rtweet/blob/master/vignettes/tokens.Rmd). After creating the app, you should note down the app name as well as *Consumer Key* and *Consumer Secret*. These credentials are long sequences of letters and numbers and could look like this:
+
+- Consumer Key:     lhW9T7ZhjklQv9CJhHQjyjS75
+- Consumer Secret:  oDmgDMzFzyHBBBZUA3FtD2LH0Pfd1eS7RPZFxdSy95Fh0gfNDI7
+
+Next, install and load the [rtweet library](https://github.com/mkearney/rtweet).
+
+```{r}
+if (!require("rtweet")){
+    install.packages("rtweet")
+    }
+library(rtweet)
+```
+
+## Accessing Twitter
+Now we are ready to go and use a function to access the Twitter API. Replace all credentials in the next code block with those of the Twitter app you created before.
+
+```{r}
+token <- create_token(app = "cs_twitterapp", 
+                      consumer_key = "lhW9T7ZhjklQv9CJhHQjyjS75",
+                      consumer_secret = "oDmgDMzFzyHBBBZUA3FtD2LH0Pfd1eS7RPZFxdSy95Fh0gfNDI7")
+```
+Calling ``create_token`` might open your browser and ask for twitter permissions. In addition, you can decide whether you want to cache your credentials in a local file for easier access later on.
+
+With this token, we can search Twitter for certain terms or hashtags, get data from a user timeline or connect to a stream. To get tweets from a timeline, all you need to know is the corresponding user name. Here, we retrieve the last 500 tweets from Donald Trump.
+
+
+```{r}
+trump <- get_timeline("realDonaldTrump", 500, token=token)
+```
+Tweets are converted into a ```dataframe``` containing not only the text message, but also a variety of other metadata like time stamps and user information.
+
+```{r}
+head(trump)
+```
+
+Searching for queries is possible with ``search_tweets``. However, there are [some restrictions](https://dev.twitter.com/rest/public/search) for searches. Most importantly, you can only access Tweets published in the past seven days.
+
+```{r}
+search <- search_tweets('#StillWithHer', 50, token=token)
+search$text[1]
+```
+
+
+Accessing timelines or searching for specific terms are useful to retrieven historical data. If you want to capture new tweets being generated, you need to connect to a [Twitter stream](https://dev.twitter.com/streaming/public).
+
+```{r, eval=F}
+stream <- stream_tweets('clinton', 20, token=token, verbose=F)
+```
+```{r}
+nrow(stream)
+```
+
+In this example, connecting to a Twitter stream for 20 seconds and filtering for the term ```clinton``` resulted in a sample of 100 tweets. Bare in mind that streams also capture retweets starting with ``"RT"``. Depending on your research interests, you might want to exclude these for further analysis. If you plan to stream tweets for a longer time period, you also might want to store data on disk first and create a dataframe afterwards. See ``help(stream_tweets)`` for more details on this. 
+
+Finally, don't forget that without access to a Firehose account (which is quite expensive!), you will not be able to get all tweets from the Twitter database, which could potentially [affect your results](https://arxiv.org/abs/1306.5204).
